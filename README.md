@@ -40,3 +40,15 @@ El APK es una compilación `assembleDebug`, no una compilación `release` firmad
 - `.github/workflows/build-apk.yml`: validación, compilación y publicación de la versión de pruebas.
 
 Para detalles del funcionamiento consulta [LEEME.md](LEEME.md).
+
+## Comunicación asistida (versión 2.4 de pruebas)
+
+La pestaña **Mensajes** incorpora un panel de comunicación semidúplex por Morse. El emisor selecciona canal y duración del punto, prepara bloques con CRC-16, transmite uno a uno y espera un ACK del otro dispositivo. Puede activar reintentos automáticos. El receptor puede fijar la velocidad al entrar desde el chat. Los bloques duplicados se reconocen y no reconstruyen el mismo mensaje otra vez.
+
+**Compresión y seguridad opcionales:** la casilla de compresión usa gzip cuando el dispositivo lo admite y reduce el tamaño; la contraseña compartida cifra mediante AES-256-GCM con derivación PBKDF2. Introduce la misma contraseña en ambos móviles. Estos mecanismos protegen la carga útil, pero no ocultan las emisiones, su duración ni su frecuencia. No se ha realizado una auditoría de seguridad independiente.
+
+**Recepción:** umbral acústico adaptativo basado en el ruido estimado y detección luminosa sobre los píxeles más brillantes del área seleccionada. Son mejoras de software, no una garantía de lectura exacta.
+
+**Lo que todavía no incluye:** módem binario rápido con FEC integrada, negociación de enlace completamente automática, conmutación de canal sin intervención, ni validación física de autonomía, distancia o tasa de errores. La aplicación sigue siendo experimental y **no debe utilizarse como único medio de comunicación de emergencia**.
+
+La compilación automática ejecuta las pruebas de sesiones y cifrado (`node --test tests/*.test.cjs`) antes de generar el APK. 
