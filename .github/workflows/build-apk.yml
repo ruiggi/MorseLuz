@@ -32,6 +32,9 @@ jobs:
           test -s app/src/main/java/es/morseluz/app/MainActivity.java
           echo "JavaScript y archivos principales correctos."
 
+      - name: Probar protocolo de comunicacion
+        run: node --test tests/*.test.cjs
+
       - name: Instalar Android SDK 35
         shell: bash
         run: |
