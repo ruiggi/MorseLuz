@@ -1,0 +1,31 @@
+/* Morse Luz 2.3 — interfaz de sesión con CRC y ACK, canal Morse existente. */
+(function(){
+'use strict';
+if(!window.MorseLink||!window.MorseCore)return;
+const S=new MorseLink.Session({chunkBytes:8,maxRetries:3,timeoutMs:15000});
+const $=id=>document.getElementById(id);
+const root=$('page-chat');if(!root)return;
+const pane=document.createElement('div');pane.className='card';pane.id='linkPanel';
+pane.innerHTML='<h3>Comunicación asistida</h3><p class="help">Intercambio semidúplex mediante Morse, con CRC-16, confirmaciones ACK y reintentos. Configura ambos móviles con el mismo canal y velocidad.</p><div class="two"><div><label>Canal</label><select id="lkChannel"><option value="sound">Audio</option><option value="torch">Linterna</option><option value="screen">Pantalla</option></select></div><div><label>Punto Morse</label><select id="lkUnit"><option value="240">240 ms</option><option value="400">400 ms</option><option value="120">120 ms</option></select></div></div><label>Mensaje a enviar</label><textarea id="lkInput" rows="2"></textarea><div class="buttons"><button id="lkPrepare" class="secondary">Preparar</button><button id="lkSend" class="primary">Enviar bloque</button><button id="lkRetry" class="secondary">Cancelar</button></div><div class="notice" id="lkState">Sin sesión.</div><details><summary>Ajustes de enlace</summary><div class="two"><div><label>Bytes por bloque</label><select id="lkChunk"><option>8</option><option>16</option><option>24</option></select></div><div><label>Reintentos máximos</label><select id="lkRetries"><option>2</option><option selected>3</option><option>5</option></select></div></div><label><input type="checkbox" id="lkAutoAck"> ACK automático (experimental)</label></details><label>Mensaje recibido y verificado</label><textarea id="lkInbox" rows="3" readonly></textarea><div class="buttons"><button id="lkListen" class="secondary">Abrir receptor</button><button id="lkAck" class="secondary">Transmitir ACK</button></div>';
+root.insertBefore(pane,root.querySelector('.card'));
+function state(s){$('lkState').textContent=s;}
+function txSettings(){$('txMode').value=$('lkChannel').value;$('txUnit').value=$('lkUnit').value;$('txUnit').dispatchEvent(new Event('input'));}
+$('lkPrepare').onclick=()=>{try{S.options.chunkBytes=+$('lkChunk').value;S.options.maxRetries=+$('lkRetries').value;const id=(Date.now()%1679616).toString(36).toUpperCase().padStart(4,'0');const n=S.prepare($('lkInput').value,id);state(n+' bloques preparados. Usa recepción en el otro móvil.');}catch(e){state(e.message);}};
+$('lkSend').onclick=async()=>{if(app.txBusy)return;const f=S.outgoing();if(!f){state(S.error||'Esperando ACK o sesión terminada');return;}txSettings();state('Transmitiendo bloque '+f.number+'/'+f.total+', intento '+f.attempt);await sendText(f.frame,false);state('Esperando confirmación ACK del bloque '+f.number+'.');};
+$('lkRetry').onclick=()=>{if(app.txBusy)cancelTx();S.reset();state('Sesión cancelada.');};
+$('lkListen').onclick=()=>page('receive');
+$('lkAck').onclick=async()=>{if(!S.lastAck)return state('No hay paquete recibido.');txSettings();await sendText(S.lastAck,false);state('ACK enviado.');};
+const old=onReceiveMessage;
+onReceiveMessage=function(message){
+ old(message);
+ if(S.acceptAck(message)){state(S.completed?'Mensaje entregado y confirmado.':'ACK correcto: listo para el siguiente bloque.');return;}
+ let result;
+ try{result=S.ingest(message);}catch(e){state('Error de lectura: '+e.message);return;}
+ if(result.kind==='complete'){$('lkInbox').value+=($('lkInbox').value?'\n\n':'')+result.text;state('Mensaje completo, CRC verificado.');}
+ else if(result.kind==='part'||result.kind==='duplicate')state('Recibido bloque '+result.index+'/'+result.total);
+ else if(result.kind==='corrupt')state('CRC incorrecto: bloque rechazado.');
+ if(result.ack&&$('lkAutoAck').checked&&app.rxActive&&!app.txBusy){
+   setTimeout(()=>{if(!app.txBusy){txSettings();sendText(result.ack,false);}},1600);
+ }
+};
+})();
