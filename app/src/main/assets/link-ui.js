@@ -16,7 +16,7 @@ function txSettings(){$('txMode').value=$('lkChannel').value;$('txUnit').value=$
 $('lkPrepare').onclick=async()=>{try{S.options.chunkBytes=+$('lkChunk').value;S.options.maxRetries=+$('lkRetries').value;const id=(Date.now()%1679616).toString(36).toUpperCase().padStart(4,'0');const password=$('lkPassword').value;const msg=(password||$('lkCompress').checked)?await MorseSecure.pack($('lkInput').value,{password,compressText:$('lkCompress').checked}):$('lkInput').value;const n=S.prepare(msg,id);state(n+' bloques preparados.'+(password?' Cifrado activado.':''));}catch(e){state(e.message);}};
 $('lkSend').onclick=async()=>{if(app.txBusy)return;const f=S.outgoing();if(!f){state(S.error||'Esperando ACK o sesión terminada');return;}txSettings();state('Transmitiendo bloque '+f.number+'/'+f.total+', intento '+f.attempt);await sendText(f.frame,false);state('Esperando confirmación ACK del bloque '+f.number+'.');};
 $('lkRetry').onclick=()=>{if(app.txBusy)cancelTx();S.reset();state('Sesión cancelada.');};
-$('lkListen').onclick=()=>page('receive');
+$('lkListen').onclick=()=>{if($('rxAutoSpeed')){$('rxAutoSpeed').checked=false;$('rxAutoSpeed').dispatchEvent(new Event('change'));}$('rxFixedSpeed').value=$('lkUnit').value;$('rxGaps').value='3,7';page('receive');state('Receptor configurado con velocidad de '+$('lkUnit').value+' ms por punto.');};
 $('lkAck').onclick=async()=>{if(!S.lastAck)return state('No hay paquete recibido.');txSettings();await sendText(S.lastAck,false);state('ACK enviado.');};
 const old=onReceiveMessage;
 onReceiveMessage=function(message){
