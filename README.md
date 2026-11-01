@@ -52,3 +52,9 @@ La pestaña **Mensajes** incorpora un panel de comunicación semidúplex por Mor
 **Lo que todavía no incluye:** módem binario rápido con FEC integrada, negociación de enlace completamente automática, conmutación de canal sin intervención, ni validación física de autonomía, distancia o tasa de errores. La aplicación sigue siendo experimental y **no debe utilizarse como único medio de comunicación de emergencia**.
 
 La compilación automática ejecuta las pruebas de sesiones y cifrado (`node --test tests/*.test.cjs`) antes de generar el APK. 
+
+### Modo de robustez ML2 (2.5)
+
+En la pestaña Mensajes, dentro de los ajustes de enlace, puedes activar **Robustez ML2**. Codifica cada bloque con Hamming SECDED (8,4), capaz de corregir un bit por palabra de código y detectar errores dobles, más CRC-16 para identificar bloques corruptos. Ocupa más tiempo de transmisión; los errores de temporización, pérdida de símbolos y alteraciones mayores pueden seguir haciendo necesario el reintento.
+
+Desde el panel de chat también puedes iniciar la escucha, fijar la velocidad del receptor, activar el ACK automático y continuar con el siguiente bloque al recibir confirmación. Para obtener mejores resultados, comienza con audio a 240–400 ms por punto y mensajes cortos. Esto sigue requiriendo pruebas físicas con dos teléfonos.
