@@ -65,3 +65,31 @@ function attach(){$('platform').textContent=window.AndroidBridge?'Android':'Web'
  window.addEventListener('pagehide',()=>{cancelTx();stopRx();recordStop();releaseTorch();});if('serviceWorker' in navigator&&!window.AndroidBridge&&location.protocol==='https:')navigator.serviceWorker.register('./service-worker.js').catch(()=>{});refreshTx();renderHistory();capabilities();$('learnWpm').textContent=(1200/+$('txUnit').value).toFixed(1)+' WPM';}
 async function switchRx(mode){if(app.rxActive)await stopRx();app.receiverKind=mode;$('rxAudioTab').classList.toggle('selected',mode==='audio');$('rxCameraTab').classList.toggle('selected',mode==='camera');$('rxPreview').hidden=true;note('rxStatus',mode==='camera'?'Apunta el centro de la cámara al emisor. Calibra con la luz apagada.':'Micrófono listo. Inicia la escucha para identificar tonos Morse.');}
 attach();
+
+
+/* Morse Luz 2.2 — selector de modo sin eliminar opciones */
+(function initInterfaceLevels(){
+  const style=document.createElement('style');
+  style.textContent='.ui-level{display:flex;align-items:center;gap:8px;max-width:900px;margin:0 auto 8px;padding:5px 12px;background:#101d30;border:1px solid #344c63;border-radius:12px}.ui-level span{margin-right:auto;color:#adc0d4;font-size:.85rem;font-weight:700}.ui-level button{background:#1c3045;color:#f2f6ff;border:1px solid #344c63;border-radius:9px;padding:8px 13px;font-weight:700}.ui-level button.selected{background:#326c69;border-color:#72dfba}.ui-mode-basic .ui-advanced-item{display:none!important}.ui-mode-basic .sectionhead p{display:none}.ui-mode-basic .card{padding:12px}.ui-mode-basic .sectionhead{margin-bottom:6px}.ui-mode-basic textarea{min-height:66px}.ui-mode-basic .notice{font-size:.8rem;padding:8px}.ui-mode-basic .help{font-size:.76rem}.ui-mode-basic .stats{gap:5px}.ui-mode-basic .stats>div{padding:7px}.ui-mode-basic .osc canvas{max-height:78px}.ui-mode-basic .preview{max-height:155px;overflow:hidden}.ui-mode-basic .setting{margin:5px 0}@media(max-width:620px){.ui-level{position:sticky;top:50px;z-index:33;border-radius:0;margin:0 0 7px;padding:6px 10px;backdrop-filter:blur(6px)}.ui-level button{font-size:.84rem;padding:7px 12px}.ui-mode-basic .two{gap:4px}.ui-mode-basic .buttons{gap:6px}}';
+  document.head.appendChild(style);
+  const bar=document.createElement('div');bar.className='ui-level';bar.setAttribute('role','group');bar.setAttribute('aria-label','Nivel de configuración');
+  bar.innerHTML='<span>Configuración</span><button type="button" id="uiBasic">Básico</button><button type="button" id="uiAdvanced">Avanzado</button>';
+  document.querySelector('main').before(bar);
+  const advanced=['txWave','txFreq','txVolume','txLetterGap','txWordGap','rxPitch','rxFreq','rxFilter','rxCameraFacing','rxRoi','rxLockExposure','rxAutoAck','rxGaps','labFreq','labThreshold','chatChunk','chatRetries'];
+  for(const id of advanced){
+    const el=document.getElementById(id);if(!el)continue;
+    const group=el.closest('.setting')||el.closest('.toggles label')||el.parentElement;
+    if(group)group.classList.add('ui-advanced-item');
+  }
+  const apply=mode=>{
+    document.body.classList.toggle('ui-mode-basic',mode==='basic');
+    for(const [id,value] of [['uiBasic','basic'],['uiAdvanced','advanced']]){
+      const b=document.getElementById(id);b.classList.toggle('selected',mode===value);b.setAttribute('aria-pressed',String(mode===value));
+    }
+    try{localStorage.setItem('morse-luz-ui-mode',mode)}catch{}
+  };
+  document.getElementById('uiBasic').onclick=()=>apply('basic');
+  document.getElementById('uiAdvanced').onclick=()=>apply('advanced');
+  let mode='basic';try{mode=localStorage.getItem('morse-luz-ui-mode')||'basic'}catch{}
+  apply(mode==='advanced'?'advanced':'basic');
+})();
