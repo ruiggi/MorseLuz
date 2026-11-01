@@ -29,20 +29,16 @@
   if(M.crc16(bytes)!==crc)throw Error('FSK: CRC incorrecto');
   return new TextDecoder('utf-8',{fatal:true}).decode(bytes.slice(2));
  }
- function preambleScore(samples,start,baudMs,n=PREAMBLE.length){
-  let good=0,seen=0;
-  for(let i=0;i<n;i++){
-   const a=start+(i+.24)*baudMs,b=start+(i+.76)*baudMs;
-   let ones=0,zeros=0;
-   for(const s of samples)if(s.t>=a&&s.t<b){if(s.bit)ones++;else zeros++;}
-   if(ones+zeros){seen++;if((ones>=zeros?1:0)===+(PREAMBLE[i]))good++;}
-  }
-  return {score:seen?good/seen:0,seen};
- }
+ function firstAtOrAfter(samples,time){let low=0,high=samples.length;while(low<high){const mid=(low+high)>>>1;if(samples[mid].t<time)low=mid+1;else high=mid;}return low;}
  function decide(samples,t,baudMs){
   const a=t+.23*baudMs,b=t+.77*baudMs;let ones=0,zeros=0;
-  for(const s of samples)if(s.t>=a&&s.t<b){if(s.bit)ones++;else zeros++;}
+  for(let i=firstAtOrAfter(samples,a);i<samples.length&&samples[i].t<b;i++){if(samples[i].bit)ones++;else zeros++;}
   return ones+zeros?(ones>=zeros?'1':'0'):null;
+ }
+ function preambleScore(samples,start,baudMs,n=PREAMBLE.length){
+  let good=0,seen=0;
+  for(let i=0;i<n;i++){const bit=decide(samples,start+i*baudMs,baudMs);if(bit!==null){seen++;if(bit===PREAMBLE[i])good++;}}
+  return {score:seen?good/seen:0,seen};
  }
  function decodeSamples(samples,baudMs=125){
   if(samples.length<20)return null;
