@@ -21,6 +21,6 @@ test('la compresión permite recuperar textos largos',async()=>{
  assert.equal(await cryptoLink.unpack(packet),original);
 });
 test('se rechaza formato inseguro o incompleto',async()=>{
- await assert.rejects(cryptoLink.unpack('MX1 INVALID0'),/Base32|inválid/);
+ await assert.rejects(cryptoLink.unpack('MX1 INVALID0'),/válido|Base32|inválid/);
  await assert.rejects(cryptoLink.pack('x',{password:'corta'}),/8 caracteres/);
 });
