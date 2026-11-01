@@ -49,7 +49,7 @@ test('paquetes duplicados idempotentes',()=>{
  const a=new Session(),b=new Session();
  a.prepare('dato','A1');const p=a.outgoing(1000).frame;
  assert.equal(b.ingest(p).kind,'complete');
- assert.equal(b.ingest(p).kind,'complete');
+ assert.equal(b.ingest(p).kind,'duplicate');
 });
 test('diagnóstico de calidad',()=>{
  assert.ok(assess({pulses:1}).issues.length>0);
