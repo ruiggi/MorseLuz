@@ -58,3 +58,15 @@ La compilación automática ejecuta las pruebas de sesiones y cifrado (`node --t
 En la pestaña Mensajes, dentro de los ajustes de enlace, puedes activar **Robustez ML2**. Codifica cada bloque con Hamming SECDED (8,4), capaz de corregir un bit por palabra de código y detectar errores dobles, más CRC-16 para identificar bloques corruptos. Ocupa más tiempo de transmisión; los errores de temporización, pérdida de símbolos y alteraciones mayores pueden seguir haciendo necesario el reintento.
 
 Desde el panel de chat también puedes iniciar la escucha, fijar la velocidad del receptor, activar el ACK automático y continuar con el siguiente bloque al recibir confirmación. Para obtener mejores resultados, comienza con audio a 240–400 ms por punto y mensajes cortos. Esto sigue requiriendo pruebas físicas con dos teléfonos.
+
+### Canal digital acústico experimental (2.7)
+
+La pantalla **Mensajes** incluye un segundo transporte opcional **FSK digital**. Emite dos tonos, 750 y 1250 Hz, a unos 8 bits/s con preámbulo de sincronización, longitud y CRC-16. No utiliza el alfabeto Morse. Ambos dispositivos deben activar el receptor FSK; admite mensajes de hasta 1024 bytes, aunque transmitir textos largos puede tardar mucho. La recepción utiliza WebAudio y requiere comprobar sensibilidad, jitter y permisos en teléfonos reales.
+
+Las pruebas automáticas simulan bits FSK con perturbaciones temporales y ruido aislado; **no equivalen a una prueba real por altavoz y micrófono**. El modo FSK **no dispone todavía de confirmaciones ni reenvío automático**. Para sesiones que necesitan ACK, reintentos y corrección FEC, usa el modo Morse ML2.
+
+La conmutación óptica/acústica completamente automática aún no está resuelta: para cambiar entre canales es necesario que ambos extremos coordinen el cambio. No se debe interpretar la existencia de ambos canales como una garantía de failover transparente.
+
+### Comprobaciones locales
+
+En **Ajustes → Autodiagnóstico de comunicación** se pueden ejecutar pruebas locales de codificación, decodificación simulada, FEC, CRC, cifrado y disponibilidad de las APIs. Estas pruebas no verifican distancias, iluminación, interferencias ni transmisión entre dos teléfonos.
